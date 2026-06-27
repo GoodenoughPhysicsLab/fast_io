@@ -26,11 +26,11 @@ class linux_clone3_thread
 	using id = ::pid_t;
 
 private:
-	template <typename F, typename... A>
+	template <typename Func, typename... Args>
 	struct alignas(16) child_ctx
 	{
-		F func;
-		::fast_io::containers::tuple<A...> args;
+		Func func;
+		::fast_io::containers::tuple<Args...> args;
 	};
 
 	struct alignas(16) clone3_thread_stack
@@ -82,9 +82,8 @@ public:
 		this->stack_ = thread_stack_type_allocator::allocate(1u);
 		::new (this->stack_) clone3_thread_stack{};
 
-		using decF = ::std::decay_t<Func>;
 		using decArgsTuple = ::fast_io::containers::tuple<::std::decay_t<Args>...>;
-		using ctx_t = child_ctx<decF, ::std::decay_t<Args>...>;
+		using ctx_t = child_ctx<::std::decay_t<Func>, ::std::decay_t<Args>...>;
 
 		// Pre-construct the context at the top of the child thread stack; the child thread derives the address by backtracking via RSP.
 		auto tail_base{reinterpret_cast<::std::uintptr_t>(__builtin_addressof(this->stack_->tail_))};
@@ -132,7 +131,7 @@ public:
 			auto reserve{(sp - ctx_addr_child) + static_cast<::std::uintptr_t>(128u)};
 			reserve = (reserve + 15u) & ~static_cast<::std::uintptr_t>(15u);
 
-			linux_clone3_thread::child_entry<decF, ::std::decay_t<Args>...>(ctx_child);
+			linux_clone3_thread::child_entry<::std::decay_t<Func>, ::std::decay_t<Args>...>(ctx_child);
 
 			__builtin_unreachable();
 		}
