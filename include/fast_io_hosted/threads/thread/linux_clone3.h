@@ -4,7 +4,7 @@
 #error "This file is for linux only"
 #endif
 
-#error "We do not recommend using clone3, as it omits the allocation of numerous TLS signals and other components."
+// #error "We do not recommend using clone3, as it omits the allocation of numerous TLS signals and other components."
 
 #include <atomic>
 #include <cstddef>
